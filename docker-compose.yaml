@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  ludiks-db:
+    container_name: ludiks-db
+    image: 'postgres:latest'
+    ports:
+      - 5433:5432
+    environment:
+      POSTGRES_USER: ludiks
+      POSTGRES_PASSWORD: ludiks
+      POSTGRES_DB: ludiks
+    volumes:
+      - ./var/db/:/var/lib/postgresql/data/
+    restart: always
