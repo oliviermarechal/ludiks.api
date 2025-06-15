@@ -8,7 +8,7 @@ type Step struct {
 	ID                  string    `json:"id"`
 	Name                string    `json:"name"`
 	Description         *string   `json:"description"`
-	StepNumber          int       `json:"stepNumber"`
+	StepNumber          *int      `json:"stepNumber"`
 	CompletionThreshold int       `json:"completionThreshold"`
 	EventName           string    `json:"eventName"`
 	CircuitID           string    `json:"circuitId"`
@@ -16,7 +16,7 @@ type Step struct {
 	CreatedAt           time.Time `json:"createdAt"`
 }
 
-func CreateStep(id string, name string, description *string, completionThreshold int, circuitID string, stepNumber int, eventName string) *Step {
+func CreateStep(id string, name string, description *string, completionThreshold int, circuitID string, stepNumber *int, eventName string) *Step {
 	return &Step{
 		ID:                  id,
 		Name:                name,

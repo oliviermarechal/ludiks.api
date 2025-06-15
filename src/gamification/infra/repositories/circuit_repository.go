@@ -70,6 +70,7 @@ func (r *CircuitRepository) CreateMultipleSteps(steps []*models.Step) ([]*models
 }
 
 func (r *CircuitRepository) DeleteSteps(circuitID string) error {
+	r.db.Where("circuit_id = ?", circuitID).Delete(&models.Reward{})
 	err := r.db.Where("circuit_id = ?", circuitID).Delete(&models.Step{}).Error
 	if err != nil {
 		return err
@@ -106,7 +107,17 @@ func (r *CircuitRepository) UpdateStep(stepId string, name string, description s
 	return &step, nil
 }
 
+func (r *CircuitRepository) UpdateStepNumber(stepId string, stepNumber int) error {
+	err := r.db.Model(&models.Step{}).Where("id = ?", stepId).Update("step_number", stepNumber).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *CircuitRepository) DeleteStep(stepId string) error {
+	_ = r.db.Where("step_id = ?", stepId).Delete(&models.Reward{}).Error
 	err := r.db.Where("id = ?", stepId).Delete(&models.Step{}).Error
 	if err != nil {
 		return err

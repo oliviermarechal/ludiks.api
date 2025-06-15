@@ -7,6 +7,7 @@ type CreateStepDTO struct {
 	Description         *string `json:"description"`
 	CompletionThreshold int     `json:"completionThreshold" validate:"required"`
 	EventName           string  `json:"eventName" validate:"required"`
+	StepNumber          *int    `json:"stepNumber"`
 }
 
 func (dto *CreateStepDTO) Validate() error {

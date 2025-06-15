@@ -39,7 +39,7 @@ func (h *CreateProjectHandler) Handle(c *gin.Context) {
 
 	user_id, ok := c.Get("user_id")
 	if !ok {
-		handlers.HandleBadRequest(c, errors.New("Authentication required"))
+		handlers.HandleBadRequest(c, errors.New("authentication required"))
 		return
 	}
 

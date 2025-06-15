@@ -14,4 +14,5 @@ type CircuitRepository interface {
 	DeleteSteps(circuitID string) error
 	DeleteStep(stepId string) error
 	UpdateStep(stepId string, name string, description string, completionThreshold int, eventName string) (*models.Step, error)
+	UpdateStepNumber(stepId string, stepNumber int) error
 }

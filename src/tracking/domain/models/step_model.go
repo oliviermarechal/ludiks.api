@@ -8,7 +8,7 @@ type Step struct {
 	ID                  string    `json:"id"`
 	Name                string    `json:"name"`
 	Description         string    `json:"description"`
-	StepNumber          int       `json:"stepNumber"`
+	StepNumber          *int      `json:"stepNumber,omitempty"`
 	CompletionThreshold int       `json:"completionThreshold"`
 	EventName           string    `json:"eventName"`
 	CircuitID           string    `json:"circuitId"`

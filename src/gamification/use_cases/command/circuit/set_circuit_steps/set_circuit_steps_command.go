@@ -7,5 +7,6 @@ type SetCircuitStepsCommand struct {
 		Description         *string
 		CompletionThreshold int
 		EventName           string
+		StepNumber          *int
 	}
 }

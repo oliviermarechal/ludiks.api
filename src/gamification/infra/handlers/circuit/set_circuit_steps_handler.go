@@ -37,6 +37,7 @@ func (h *SetCircuitStepsHandler) Handle(c *gin.Context) {
 		Description         *string
 		CompletionThreshold int
 		EventName           string
+		StepNumber          *int
 	}, len(setCircuitStepsDTO.Steps))
 
 	for i, step := range setCircuitStepsDTO.Steps {
@@ -45,11 +46,13 @@ func (h *SetCircuitStepsHandler) Handle(c *gin.Context) {
 			Description         *string
 			CompletionThreshold int
 			EventName           string
+			StepNumber          *int
 		}{
 			Name:                step.Name,
 			Description:         step.Description,
 			CompletionThreshold: step.CompletionThreshold,
 			EventName:           step.EventName,
+			StepNumber:          step.StepNumber,
 		}
 	}
 

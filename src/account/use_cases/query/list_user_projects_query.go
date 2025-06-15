@@ -8,7 +8,7 @@ import (
 
 func ListUserProjectsQuery(db *gorm.DB, userID string) []models.Project {
 	var user models.User
-	if err := db.Preload("Projects").First(&user, "id = ?", userID).Error; err != nil {
+	if err := db.Preload("Projects").Find(&user, "id = ?", userID).Error; err != nil {
 		return []models.Project{}
 	}
 

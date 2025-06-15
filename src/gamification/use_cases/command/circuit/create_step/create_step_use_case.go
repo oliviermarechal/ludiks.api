@@ -21,7 +21,7 @@ func (u *CreateStepUseCase) Execute(command *CreateStepCommand) (*models.Step, e
 		return nil, err
 	}
 
-	step := models.CreateStep(uuid.New().String(), command.Name, command.Description, command.CompletionThreshold, circuit.ID, len(*circuit.Steps)+1, command.EventName)
+	step := models.CreateStep(uuid.New().String(), command.Name, command.Description, command.CompletionThreshold, circuit.ID, command.StepNumber, command.EventName)
 	step, err = u.circuitRepository.CreateStep(step)
 	if err != nil {
 		return nil, err

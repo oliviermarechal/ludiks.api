@@ -40,7 +40,7 @@ func (u *SetCircuitStepsUseCase) Execute(command *SetCircuitStepsCommand) (*mode
 	}
 
 	for _, stepData := range command.Steps {
-		step := models.CreateStep(uuid.New().String(), stepData.Name, stepData.Description, stepData.CompletionThreshold, circuit.ID, i, stepData.EventName)
+		step := models.CreateStep(uuid.New().String(), stepData.Name, stepData.Description, stepData.CompletionThreshold, circuit.ID, stepData.StepNumber, stepData.EventName)
 		step, err = u.circuitRepository.CreateStep(step)
 		if err != nil {
 			return nil, err

@@ -49,7 +49,7 @@ func (u *TrackingEventUseCase) Execute(command *TrackingEventCommand) *TrackingE
 		AlreadyCompleted: false,
 	}
 
-	endUser, err := u.endUserRepository.Find(command.UserID)
+	endUser, err := u.endUserRepository.FindByExternalID(command.UserID)
 	if err != nil {
 		response.Success = false
 		response.Success = false

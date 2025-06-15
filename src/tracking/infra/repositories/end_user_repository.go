@@ -20,9 +20,22 @@ func (r *EndUserRepository) Create(endUser *models.EndUser) (*models.EndUser, er
 	return endUser, err
 }
 
+func (r *EndUserRepository) Update(endUser *models.EndUser) (*models.EndUser, error) {
+	err := r.db.Save(endUser).Error
+
+	return endUser, err
+}
+
 func (r *EndUserRepository) Find(ID string) (*models.EndUser, error) {
 	var endUser models.EndUser
-	err := r.db.Where("id = ?", ID).First(&endUser).Error
+	err := r.db.Where("id = ?", ID).Preload("EndUserMetadata").First(&endUser).Error
+
+	return &endUser, err
+}
+
+func (r *EndUserRepository) FindByExternalID(externalID string) (*models.EndUser, error) {
+	var endUser models.EndUser
+	err := r.db.Where("external_id = ?", externalID).Preload("EndUserMetadata").First(&endUser).Error
 
 	return &endUser, err
 }

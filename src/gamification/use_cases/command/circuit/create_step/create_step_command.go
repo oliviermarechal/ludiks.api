@@ -6,4 +6,5 @@ type CreateStepCommand struct {
 	Description         *string
 	CompletionThreshold int
 	EventName           string
+	StepNumber          *int
 }

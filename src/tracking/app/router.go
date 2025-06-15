@@ -12,13 +12,14 @@ import (
 
 func SetupRouter(router *gin.RouterGroup, db *gorm.DB) {
 	endUserRepository := infra_repositories.NewEndUserRepository(db)
-
 	progressionRepository := infra_repositories.NewProgressionRepository(db)
 	circuitRepository := infra_repositories.NewCircuitRepository(db)
+	metadataRepository := infra_repositories.NewMetadataRepository(db)
+
 	endUserRouter := router.Group("/end-user")
 	endUserRouter.Use(middleware.NewApiKeyMiddleware(db))
 	{
-		endUserRouter.POST("", end_user_handler.NewCreateEndUserHandler(endUserRepository).Handle)
+		endUserRouter.POST("", end_user_handler.NewCreateEndUserHandler(endUserRepository, metadataRepository).Handle)
 	}
 
 	trackingRouter := router.Group("/tracking")

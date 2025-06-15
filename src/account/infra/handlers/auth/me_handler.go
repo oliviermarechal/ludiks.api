@@ -23,7 +23,7 @@ func NewMeHandler(db *gorm.DB) *MeHandler {
 func (h *MeHandler) Handle(c *gin.Context) {
 	userID, ok := c.Get("user_id")
 	if !ok {
-		handlers.HandleUnauthorized(c, errors.New("User not authenticated"))
+		handlers.HandleUnauthorized(c, errors.New("user not authenticated"))
 		return
 	}
 

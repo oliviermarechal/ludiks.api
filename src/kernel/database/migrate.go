@@ -12,9 +12,11 @@ func RegisterEntities() []interface{} {
 		&CircuitEntity{},
 		&StepEntity{},
 		&EndUserEntity{},
+		&EndUserMetadataEntity{},
 		&UserCircuitProgressionEntity{},
 		&UserStepProgressionEntity{},
 		&RewardEntity{},
+		&ProjectMetadataKeysEntity{},
 	}
 }
 
