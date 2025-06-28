@@ -9,21 +9,14 @@ import (
 
 func CreateProjectUseCase(
 	projectRepository domain_repositories.ProjectRepository,
-	userRepository domain_repositories.UserRepository,
 	command CreateProjectCommand,
 ) (*models.Project, error) {
-	user, err := userRepository.Find(command.UserID)
-	if err != nil {
-		return nil, err
-	}
-
-	project := models.CreateProject(uuid.New().String(), command.Name)
+	project := models.CreateProject(uuid.New().String(), command.Name, command.OrganizationID)
 	createdProject, err := projectRepository.Create(project)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = userRepository.AssociateProject(user.ID, createdProject.ID)
 	if err != nil {
 		return nil, err
 	}

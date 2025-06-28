@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"ludiks/src/kernel/database"
+	"ludiks/src/kernel/app/database"
 )
 
 type UserStepProgression struct {

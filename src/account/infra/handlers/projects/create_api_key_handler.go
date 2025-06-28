@@ -3,7 +3,7 @@ package projects
 import (
 	domain_repositories "ludiks/src/account/domain/repositories"
 	"ludiks/src/account/use_cases/command/create_api_key"
-	"ludiks/src/kernel/handlers"
+	"ludiks/src/kernel/app/handlers"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

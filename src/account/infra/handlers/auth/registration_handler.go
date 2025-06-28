@@ -4,27 +4,30 @@ import (
 	providers "ludiks/src/account/domain/providers"
 	domain_repositories "ludiks/src/account/domain/repositories"
 	"ludiks/src/account/use_cases/command/registration"
-	"ludiks/src/kernel/handlers"
+	"ludiks/src/kernel/app/handlers"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type RegistrationHandler struct {
-	userRepository domain_repositories.UserRepository
-	encrypter      providers.Encrypter
-	jwtProvider    providers.JwtProvider
+	userRepository         domain_repositories.UserRepository
+	organizationRepository domain_repositories.OrganizationRepository
+	encrypter              providers.Encrypter
+	jwtProvider            providers.JwtProvider
 }
 
 func NewRegistrationHandler(
-	userRepo domain_repositories.UserRepository,
+	userRepository domain_repositories.UserRepository,
+	organizationRepository domain_repositories.OrganizationRepository,
 	encrypter providers.Encrypter,
 	jwtProvider providers.JwtProvider,
 ) *RegistrationHandler {
 	return &RegistrationHandler{
-		userRepository: userRepo,
-		encrypter:      encrypter,
-		jwtProvider:    jwtProvider,
+		userRepository:         userRepository,
+		organizationRepository: organizationRepository,
+		encrypter:              encrypter,
+		jwtProvider:            jwtProvider,
 	}
 }
 
@@ -40,13 +43,16 @@ func (h *RegistrationHandler) Handle(c *gin.Context) {
 		return
 	}
 
-	registrationResult, err := registration.RegistrationUseCase(
+	registrationResult, err := registration.NewRegistrationUseCase(
 		h.userRepository,
+		h.organizationRepository,
 		h.encrypter,
 		h.jwtProvider,
+	).Execute(
 		registration.RegistrationCommand{
 			Email:    dto.Email,
 			Password: dto.Password,
+			InviteID: dto.InviteID,
 		},
 	)
 

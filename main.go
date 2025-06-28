@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 
 	kernel "ludiks/src/kernel"
-	database "ludiks/src/kernel/database"
+	database "ludiks/src/kernel/app/database"
 )
 
 func main() {

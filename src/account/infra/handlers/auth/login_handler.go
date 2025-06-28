@@ -4,7 +4,7 @@ import (
 	providers "ludiks/src/account/domain/providers"
 	domain_repositories "ludiks/src/account/domain/repositories"
 	"ludiks/src/account/use_cases/command/login"
-	"ludiks/src/kernel/handlers"
+	"ludiks/src/kernel/app/handlers"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

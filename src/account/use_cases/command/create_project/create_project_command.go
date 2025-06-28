@@ -1,6 +1,7 @@
 package create_project
 
 type CreateProjectCommand struct {
-	UserID string
-	Name   string
+	UserID         string
+	Name           string
+	OrganizationID string
 }

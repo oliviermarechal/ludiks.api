@@ -98,9 +98,6 @@ func (s *TrackingEventActionsTestSuite) trackEvent(value *int) map[string]interf
 	w := httptest.NewRecorder()
 	s.router.ServeHTTP(w, req)
 
-	println("Status Code:", w.Code)
-	println("Raw Response:", w.Body.String())
-
 	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	if err != nil {

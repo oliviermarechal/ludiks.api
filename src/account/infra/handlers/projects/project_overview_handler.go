@@ -2,7 +2,7 @@ package projects
 
 import (
 	"ludiks/src/account/use_cases/query"
-	"ludiks/src/kernel/handlers"
+	"ludiks/src/kernel/app/handlers"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

@@ -4,7 +4,7 @@ import (
 	circuit_handler "ludiks/src/gamification/infra/handlers/circuit"
 	reward_handler "ludiks/src/gamification/infra/handlers/reward"
 	infra_repositories "ludiks/src/gamification/infra/repositories"
-	"ludiks/src/kernel/middleware"
+	"ludiks/src/kernel/app/middleware"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -19,6 +19,7 @@ func SetupRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		circuitRouter.POST("", circuit_handler.NewCreateCircuitHandler(circuitRepository).Handle)
 		circuitRouter.POST("/:id/steps", circuit_handler.NewAddStepHandler(circuitRepository).Handle)
 		circuitRouter.GET("/:id/insights", circuit_handler.NewGetCircuitInsightHandler(db).Handle)
+		circuitRouter.DELETE("/:id", circuit_handler.NewDeleteCircuitHandler(circuitRepository).Handle)
 		circuitRouter.POST("/:id/rename", circuit_handler.NewRenameCircuitHandler(circuitRepository).Handle)
 		circuitRouter.POST("/:id/activate", circuit_handler.NewActivateCircuitHandler(circuitRepository).Handle)
 		circuitRouter.POST("/:id/set-steps", circuit_handler.NewSetCircuitStepsHandler(circuitRepository).Handle)

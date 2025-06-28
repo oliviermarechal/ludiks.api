@@ -36,3 +36,32 @@ func (r *CircuitRepository) GetCircuitSteps(circuitId string) (*[]models.Step, e
 	}
 	return &steps, nil
 }
+
+func (r *CircuitRepository) GetStepRewards(stepID string) (*[]models.Reward, error) {
+	rewards := []models.Reward{}
+	err := r.db.Where("step_id = ?", stepID).Find(&rewards).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &rewards, nil
+}
+
+func (r *CircuitRepository) GetCircuitRewards(circuitID string) (*[]models.Reward, error) {
+	rewards := []models.Reward{}
+	err := r.db.
+		Where("circuit_id = ?", circuitID).
+		Where("unlock_on_circuit_completion = ?", true).
+		Find(&rewards).
+		Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return &rewards, nil
+		}
+
+		return nil, err
+	}
+
+	return &rewards, nil
+}

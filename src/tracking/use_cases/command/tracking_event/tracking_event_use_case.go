@@ -1,7 +1,8 @@
 package tracking_event
 
 import (
-	"ludiks/src/kernel/database"
+	"errors"
+	"ludiks/src/kernel/app/database"
 	"ludiks/src/tracking/domain/models"
 	domain_repositories "ludiks/src/tracking/domain/repositories"
 
@@ -13,31 +14,39 @@ import (
 )
 
 type TrackingEventUseCase struct {
-	progressionRepository domain_repositories.ProgressionRepository
-	endUserRepository     domain_repositories.EndUserRepository
-	circuitRepository     domain_repositories.CircuitRepository
+	progressionRepository  domain_repositories.ProgressionRepository
+	endUserRepository      domain_repositories.EndUserRepository
+	circuitRepository      domain_repositories.CircuitRepository
+	organizationRepository domain_repositories.OrganizationRepository
 }
 
 func NewTrackingEventUseCase(
 	progressionRepository domain_repositories.ProgressionRepository,
 	endUserRepository domain_repositories.EndUserRepository,
 	circuitRepository domain_repositories.CircuitRepository,
+	organizationRepository domain_repositories.OrganizationRepository,
 ) *TrackingEventUseCase {
 	return &TrackingEventUseCase{
-		progressionRepository: progressionRepository,
-		endUserRepository:     endUserRepository,
-		circuitRepository:     circuitRepository,
+		progressionRepository:  progressionRepository,
+		endUserRepository:      endUserRepository,
+		circuitRepository:      circuitRepository,
+		organizationRepository: organizationRepository,
 	}
 }
 
+type RewardsTrackingEventResponse struct {
+	Name string `json:"name"`
+}
+
 type TrackingEventResponse struct {
-	Success          bool    `json:"success"`
-	Updated          bool    `json:"updated"`
-	Message          *string `json:"message"`
-	StepCompleted    bool    `json:"stepCompleted"`
-	CircuitCompleted bool    `json:"circuitCompleted"`
-	AlreadyCompleted bool    `json:"alreadyCompleted"`
-	Points           *int    `json:"points,omitempty"`
+	Success          bool                           `json:"success"`
+	Updated          bool                           `json:"updated"`
+	Message          *string                        `json:"message"`
+	StepCompleted    bool                           `json:"stepCompleted"`
+	CircuitCompleted bool                           `json:"circuitCompleted"`
+	AlreadyCompleted bool                           `json:"alreadyCompleted"`
+	Points           *int                           `json:"points,omitempty"`
+	Rewards          []RewardsTrackingEventResponse `json:"rewards"`
 }
 
 func (u *TrackingEventUseCase) Execute(command *TrackingEventCommand) *TrackingEventResponse {
@@ -47,14 +56,36 @@ func (u *TrackingEventUseCase) Execute(command *TrackingEventCommand) *TrackingE
 		StepCompleted:    false,
 		CircuitCompleted: false,
 		AlreadyCompleted: false,
+		Rewards:          []RewardsTrackingEventResponse{},
 	}
 
 	endUser, err := u.endUserRepository.FindByExternalID(command.UserID)
 	if err != nil {
+		message := err.Error()
 		response.Success = false
-		response.Success = false
+		response.Message = &message
+
 		return response
 	}
+
+	organization, err := u.organizationRepository.FindByProjectID(command.ProjectID)
+	if err != nil {
+		message := err.Error()
+		response.Success = false
+		response.Message = &message
+
+		return response
+	}
+
+	if organization.HasQuotasReached() {
+		message := errors.New("monthly quota events reached").Error()
+		response.Success = false
+		response.Message = &message
+
+		return response
+	}
+	organization.IncrementQuotaUsed()
+	u.organizationRepository.IncrementQuotaUsed(organization)
 
 	circuitProgression, err := u.progressionRepository.FindUserProgressionByEventName(
 		command.ProjectID,
@@ -169,16 +200,36 @@ func (u *TrackingEventUseCase) handleObjectiveCircuit(
 	stepProgression.ProgressCount += pointToAdd
 	progression.Points += pointToAdd
 	if stepProgression.ProgressCount >= step.CompletionThreshold {
+		stepRewards, _ := u.circuitRepository.GetStepRewards(step.ID)
+
+		if stepRewards != nil && len(*stepRewards) > 0 {
+			for _, reward := range *stepRewards {
+				response.Rewards = append(response.Rewards, RewardsTrackingEventResponse{Name: reward.Name})
+			}
+		}
+
 		stepProgression.Status = database.UserStepProgressionStatusCompleted
 		stepProgression.CompletedAt = &timestamp
 		response.StepCompleted = true
 		response.Updated = true
 		progression.UpdateStepProgression(stepProgression)
+
+		nextStep := getNextStep(step, steps)
+		if nextStep != nil && progression.GetStepProgressionByStepID(nextStep.ID) == nil {
+			nextStepProg := models.StartUserStepProgression(
+				uuid.New().String(),
+				progression.ID,
+				nextStep.ID,
+			)
+			nextStepProg.StartedAt = timestamp
+			nextStepProg.ProgressCount = progression.Points // Commencer avec le total actuel
+			progression.AddStepProgression(nextStepProg)
+		}
 	}
 
 	response.Points = &progression.Points
 
-	progression, err = u.updateProgressionAndCheckCompletion(progression)
+	progression, err = u.updateProgressionAndCheckCompletion(progression, response)
 	if err != nil {
 		response.Success = false
 		response.Message = &[]string{"Failed to update progression"}[0]
@@ -200,6 +251,12 @@ func (u *TrackingEventUseCase) handleProgressiveCircuit(
 		timestamp = *command.Timestamp
 	}
 
+	if progression.CompletedAt != nil {
+		response.AlreadyCompleted = true
+		response.Message = &[]string{"Circuit already completed"}[0]
+		return response
+	}
+
 	incrementValue := 1
 	if command.Value != nil {
 		incrementValue = *command.Value
@@ -217,46 +274,100 @@ func (u *TrackingEventUseCase) handleProgressiveCircuit(
 		return (*sortedSteps)[i].CompletionThreshold < (*sortedSteps)[j].CompletionThreshold
 	})
 
-	var previousThreshold int = 0
+	remainingPoints := incrementValue
+	var lastCompletedStep *models.Step
 
+	// Distribuer les points étape par étape
 	for _, step := range *sortedSteps {
+		if remainingPoints <= 0 {
+			break
+		}
+
 		stepProg := progression.GetStepProgressionByStepID(step.ID)
 
+		// Si pas de progression pour cette étape, la créer si on a assez de points
 		if stepProg == nil {
-			if progression.Points >= previousThreshold {
+			if progression.Points >= step.CompletionThreshold {
 				stepProg = models.StartUserStepProgression(
 					uuid.New().String(),
 					progression.ID,
 					step.ID,
 				)
 				stepProg.StartedAt = timestamp
-				stepProg.ProgressCount = progression.Points
-				progression.AddStepProgression(stepProg)
-				response.Updated = true
-			} else {
-				break
-			}
-		}
-
-		if stepProg.Status == database.UserStepProgressionStatusInProgress {
-			if progression.Points >= step.CompletionThreshold {
+				stepProg.ProgressCount = step.CompletionThreshold // Total cumulatif
 				stepProg.Status = database.UserStepProgressionStatusCompleted
 				stepProg.CompletedAt = &timestamp
-				stepProg.ProgressCount = step.CompletionThreshold
-				progression.UpdateStepProgression(stepProg)
+				progression.AddStepProgression(stepProg)
 				response.StepCompleted = true
 				response.Updated = true
+				lastCompletedStep = &step
+
+				// Attribuer les points nécessaires pour compléter cette étape
+				pointsNeeded := step.CompletionThreshold - (progression.Points - incrementValue)
+				remainingPoints -= pointsNeeded
+
+				// Récupérer les récompenses de l'étape
+				stepRewards, _ := u.circuitRepository.GetStepRewards(step.ID)
+				if stepRewards != nil && len(*stepRewards) > 0 {
+					for _, reward := range *stepRewards {
+						response.Rewards = append(response.Rewards, RewardsTrackingEventResponse{Name: reward.Name})
+					}
+				}
 			} else {
+				// Pas assez de points pour cette étape, arrêter
 				break
 			}
-		}
+		} else {
+			// Progression existante
+			if stepProg.Status == database.UserStepProgressionStatusInProgress {
+				// Vérifier si on a maintenant assez de points pour terminer cette étape
+				if progression.Points >= step.CompletionThreshold {
+					stepProg.ProgressCount = step.CompletionThreshold // Total cumulatif
+					stepProg.Status = database.UserStepProgressionStatusCompleted
+					stepProg.CompletedAt = &timestamp
+					progression.UpdateStepProgression(stepProg)
+					response.StepCompleted = true
+					response.Updated = true
+					lastCompletedStep = &step
 
-		previousThreshold = step.CompletionThreshold
+					// Récupérer les récompenses de l'étape
+					stepRewards, _ := u.circuitRepository.GetStepRewards(step.ID)
+					if stepRewards != nil && len(*stepRewards) > 0 {
+						for _, reward := range *stepRewards {
+							response.Rewards = append(response.Rewards, RewardsTrackingEventResponse{Name: reward.Name})
+						}
+					}
+				} else {
+					// Mettre à jour le progress_count avec le total actuel
+					stepProg.ProgressCount = progression.Points
+					progression.UpdateStepProgression(stepProg)
+					response.Updated = true
+				}
+			} else if stepProg.Status == database.UserStepProgressionStatusCompleted {
+				// Étape déjà terminée, passer à la suivante
+				continue
+			}
+		}
+	}
+
+	// Si on vient de terminer une étape, créer la progression pour l'étape suivante
+	if lastCompletedStep != nil {
+		nextStep := getNextStep(lastCompletedStep, sortedSteps)
+		if nextStep != nil && progression.GetStepProgressionByStepID(nextStep.ID) == nil {
+			nextStepProg := models.StartUserStepProgression(
+				uuid.New().String(),
+				progression.ID,
+				nextStep.ID,
+			)
+			nextStepProg.StartedAt = timestamp
+			nextStepProg.ProgressCount = progression.Points // Commencer avec le total actuel
+			progression.AddStepProgression(nextStepProg)
+		}
 	}
 
 	response.Points = &progression.Points
 
-	progression, err = u.updateProgressionAndCheckCompletion(progression)
+	progression, err = u.updateProgressionAndCheckCompletion(progression, response)
 	if err != nil {
 		response.Success = false
 		response.Message = &[]string{"Failed to update progression: " + err.Error()}[0]
@@ -269,6 +380,7 @@ func (u *TrackingEventUseCase) handleProgressiveCircuit(
 
 func (u *TrackingEventUseCase) updateProgressionAndCheckCompletion(
 	progression *models.UserCircuitProgression,
+	response *TrackingEventResponse,
 ) (*models.UserCircuitProgression, error) {
 	updatedProgression, err := u.progressionRepository.UpdateProgression(progression)
 	if err != nil {
@@ -276,9 +388,6 @@ func (u *TrackingEventUseCase) updateProgressionAndCheckCompletion(
 	}
 
 	steps, _ := u.circuitRepository.GetCircuitSteps(progression.CircuitID)
-	if err != nil {
-		return nil, err
-	}
 
 	if len(*steps) == len(*updatedProgression.StepProgressions) {
 		allCompleted := true
@@ -290,6 +399,14 @@ func (u *TrackingEventUseCase) updateProgressionAndCheckCompletion(
 		}
 
 		if allCompleted {
+			stepRewards, _ := u.circuitRepository.GetCircuitRewards(progression.CircuitID)
+
+			if stepRewards != nil && len(*stepRewards) > 0 {
+				for _, reward := range *stepRewards {
+					response.Rewards = append(response.Rewards, RewardsTrackingEventResponse{Name: reward.Name})
+				}
+			}
+
 			completedAt := time.Now()
 			updatedProgression.CompletedAt = &completedAt
 			updatedProgression, err = u.progressionRepository.UpdateProgression(updatedProgression)
@@ -310,4 +427,24 @@ func newTrackingEventResponse() *TrackingEventResponse {
 		CircuitCompleted: false,
 		AlreadyCompleted: false,
 	}
+}
+
+func getNextStep(currentStep *models.Step, steps *[]models.Step) *models.Step {
+	if currentStep == nil || steps == nil || len(*steps) == 0 {
+		return nil
+	}
+
+	sorted := *steps
+	sort.Slice(sorted, func(i, j int) bool {
+		if sorted[i].StepNumber != nil && sorted[j].StepNumber != nil {
+			return *sorted[i].StepNumber < *sorted[j].StepNumber
+		}
+		return sorted[i].CompletionThreshold < sorted[j].CompletionThreshold
+	})
+	for idx, s := range sorted {
+		if s.ID == currentStep.ID && idx+1 < len(sorted) {
+			return &sorted[idx+1]
+		}
+	}
+	return nil
 }

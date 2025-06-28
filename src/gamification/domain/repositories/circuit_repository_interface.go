@@ -6,6 +6,7 @@ import (
 
 type CircuitRepository interface {
 	Create(circuit *models.Circuit) (*models.Circuit, error)
+	Delete(circuitId string) error
 	Rename(id string, name string) (*models.Circuit, error)
 	CreateMultipleSteps(steps []*models.Step) ([]*models.Step, error)
 	Find(id string) (*models.Circuit, error)

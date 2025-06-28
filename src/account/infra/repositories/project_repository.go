@@ -31,6 +31,14 @@ func (r *ProjectRepository) Create(project *models.Project) (*models.Project, er
 	return project, nil
 }
 
+func (r *ProjectRepository) Update(project *models.Project) (*models.Project, error) {
+	if err := r.db.Save(project).Error; err != nil {
+		return nil, err
+	}
+
+	return project, nil
+}
+
 func (r *ProjectRepository) CreateApiKey(apiKey *models.ApiKey) (*models.ApiKey, error) {
 	if err := r.db.Create(apiKey).Error; err != nil {
 		return nil, err
@@ -41,4 +49,8 @@ func (r *ProjectRepository) CreateApiKey(apiKey *models.ApiKey) (*models.ApiKey,
 	}
 
 	return apiKey, nil
+}
+
+func (r *ProjectRepository) DeleteApiKey(id string) error {
+	return r.db.Where("id = ?", id).Delete(&models.ApiKey{}).Error
 }

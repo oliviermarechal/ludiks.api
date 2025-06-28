@@ -13,7 +13,7 @@ import (
 	"ludiks/config"
 	"ludiks/src/account/domain/models"
 	kernel "ludiks/src/kernel"
-	"ludiks/src/kernel/database"
+	"ludiks/src/kernel/app/database"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"

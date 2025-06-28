@@ -1,7 +1,7 @@
 package end_user_handler
 
 import (
-	"ludiks/src/kernel/handlers"
+	"ludiks/src/kernel/app/handlers"
 	domain_repositories "ludiks/src/tracking/domain/repositories"
 	"ludiks/src/tracking/use_cases/command/log_end_user"
 	"net/http"

@@ -8,5 +8,4 @@ type UserRepository interface {
 	FindByEmail(email string) (*models.User, error)
 	FindByGid(gID string) (*models.User, error)
 	UpdateGid(id string, gID string) (*models.User, error)
-	AssociateProject(user_id string, project_id string) (*models.User, error)
 }

@@ -1,7 +1,7 @@
 package models
 
 import (
-	"ludiks/src/kernel/database"
+	"ludiks/src/kernel/app/database"
 	"time"
 )
 

@@ -3,7 +3,7 @@ package auth
 import (
 	"errors"
 	"ludiks/src/account/use_cases/query"
-	"ludiks/src/kernel/handlers"
+	"ludiks/src/kernel/app/handlers"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -27,7 +27,11 @@ func (h *MeHandler) Handle(c *gin.Context) {
 		return
 	}
 
-	user := query.Me(h.db, userID.(string))
+	user, err := query.Me(h.db, userID.(string))
+	if err != nil {
+		handlers.HandleBadRequest(c, err)
+		return
+	}
 
 	c.JSON(http.StatusOK, user)
 

@@ -3,7 +3,7 @@ package circuit_handler
 import (
 	domain_repositories "ludiks/src/gamification/domain/repositories"
 	"ludiks/src/gamification/use_cases/command/reward/delete_reward"
-	"ludiks/src/kernel/handlers"
+	"ludiks/src/kernel/app/handlers"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

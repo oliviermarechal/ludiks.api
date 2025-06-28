@@ -4,24 +4,27 @@ import (
 	providers "ludiks/src/account/domain/providers"
 	domain_repositories "ludiks/src/account/domain/repositories"
 	"ludiks/src/account/use_cases/command/google_auth"
-	"ludiks/src/kernel/handlers"
+	"ludiks/src/kernel/app/handlers"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type GoogleAuthHandler struct {
-	userRepository domain_repositories.UserRepository
-	jwtProvider    providers.JwtProvider
+	userRepository         domain_repositories.UserRepository
+	organizationRepository domain_repositories.OrganizationRepository
+	jwtProvider            providers.JwtProvider
 }
 
 func NewGoogleAuthHandler(
 	userRepo domain_repositories.UserRepository,
+	organizationRepository domain_repositories.OrganizationRepository,
 	jwtProvider providers.JwtProvider,
 ) *GoogleAuthHandler {
 	return &GoogleAuthHandler{
-		userRepository: userRepo,
-		jwtProvider:    jwtProvider,
+		userRepository:         userRepo,
+		organizationRepository: organizationRepository,
+		jwtProvider:            jwtProvider,
 	}
 }
 
@@ -39,9 +42,11 @@ func (h *GoogleAuthHandler) Handle(c *gin.Context) {
 
 	googleAuthResult, err := google_auth.NewGoogleAuthUseCase(
 		h.userRepository,
+		h.organizationRepository,
 		h.jwtProvider,
 	).Handle(google_auth.GoogleAuthCommand{
-		IdToken: dto.IdToken,
+		IdToken:  dto.IdToken,
+		InviteID: dto.InviteID,
 	})
 
 	if err != nil {

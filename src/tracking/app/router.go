@@ -1,7 +1,7 @@
 package tracking
 
 import (
-	"ludiks/src/kernel/middleware"
+	"ludiks/src/kernel/app/middleware"
 	end_user_handler "ludiks/src/tracking/infra/handlers/end_user"
 	tracking_handler "ludiks/src/tracking/infra/handlers/tracking"
 	infra_repositories "ludiks/src/tracking/infra/repositories"
@@ -14,6 +14,7 @@ func SetupRouter(router *gin.RouterGroup, db *gorm.DB) {
 	endUserRepository := infra_repositories.NewEndUserRepository(db)
 	progressionRepository := infra_repositories.NewProgressionRepository(db)
 	circuitRepository := infra_repositories.NewCircuitRepository(db)
+	organizationRepository := infra_repositories.NewOrganizationRepository(db)
 	metadataRepository := infra_repositories.NewMetadataRepository(db)
 
 	endUserRouter := router.Group("/end-user")
@@ -25,6 +26,6 @@ func SetupRouter(router *gin.RouterGroup, db *gorm.DB) {
 	trackingRouter := router.Group("/tracking")
 	trackingRouter.Use(middleware.NewApiKeyMiddleware(db))
 	{
-		trackingRouter.POST("", tracking_handler.NewProgressionTrackingHandler(progressionRepository, endUserRepository, circuitRepository).Handle)
+		trackingRouter.POST("", tracking_handler.NewProgressionTrackingHandler(progressionRepository, endUserRepository, circuitRepository, organizationRepository).Handle)
 	}
 }

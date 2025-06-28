@@ -6,11 +6,11 @@ import (
 )
 
 type ProjectMetadataKey struct {
-	ID        string          `json:"id"`
-	ProjectID string          `json:"project_id"`
-	KeyName   string          `json:"key_name"`
-	CreatedAt time.Time       `json:"created_at"`
-	Values    []MetadataValue `json:"values"`
+	ID        string           `json:"id"`
+	ProjectID string           `json:"project_id"`
+	KeyName   string           `json:"key_name"`
+	CreatedAt time.Time        `json:"created_at"`
+	Values    []*MetadataValue `json:"values"`
 }
 
 func CreateProjectMetadataKey(ID string, ProjectID string, KeyName string) *ProjectMetadataKey {
@@ -19,7 +19,7 @@ func CreateProjectMetadataKey(ID string, ProjectID string, KeyName string) *Proj
 		ProjectID: ProjectID,
 		KeyName:   KeyName,
 		CreatedAt: time.Now(),
-		Values:    []MetadataValue{},
+		Values:    []*MetadataValue{},
 	}
 }
 
@@ -45,8 +45,6 @@ func convertToString(value interface{}) string {
 func (p *ProjectMetadataKey) HasValue(value interface{}) bool {
 	for _, v := range p.Values {
 		if v.Value == value {
-			fmt.Println(v.Value)
-			fmt.Println(value)
 			return true
 		}
 	}

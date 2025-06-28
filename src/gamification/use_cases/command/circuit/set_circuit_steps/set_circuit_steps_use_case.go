@@ -3,7 +3,7 @@ package set_circuit_steps
 import (
 	"ludiks/src/gamification/domain/models"
 	domain_repositories "ludiks/src/gamification/domain/repositories"
-	"ludiks/src/kernel/database"
+	"ludiks/src/kernel/app/database"
 
 	"errors"
 	"sort"

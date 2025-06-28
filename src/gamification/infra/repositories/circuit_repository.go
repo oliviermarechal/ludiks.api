@@ -23,6 +23,11 @@ func (r *CircuitRepository) Create(circuit *models.Circuit) (*models.Circuit, er
 	return circuit, nil
 }
 
+func (r *CircuitRepository) Delete(circuitId string) error {
+	r.DeleteSteps(circuitId)
+	return r.db.Delete(&models.Circuit{}, "id = ?", circuitId).Error
+}
+
 func (r *CircuitRepository) Rename(id string, name string) (*models.Circuit, error) {
 	err := r.db.Model(&models.Circuit{}).Where("id = ?", id).Update("name", name).Error
 	if err != nil {
