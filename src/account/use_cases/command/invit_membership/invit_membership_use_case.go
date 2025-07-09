@@ -3,11 +3,11 @@ package invit_membership
 import (
 	"errors"
 	"fmt"
+	"ludiks/config"
 	"ludiks/src/account/domain/models"
 	domain_repositories "ludiks/src/account/domain/repositories"
 	domain_providers "ludiks/src/kernel/domain/providers"
 	"ludiks/src/kernel/infra/utils"
-	"os"
 
 	"github.com/google/uuid"
 )
@@ -57,9 +57,9 @@ func (i *InvitMembershipUseCase) Execute(command InvitMembershipCommand) (*model
 
 	var invitationURL string
 	if existingUser != nil {
-		invitationURL = fmt.Sprintf("%s/invitations", os.Getenv("FRONT_URL"))
+		invitationURL = fmt.Sprintf("%s/invitations", config.AppConfig.FrontURL)
 	} else {
-		invitationURL = fmt.Sprintf("%s/auth/registration?token=%s", os.Getenv("FRONT_URL"), invitation.ID)
+		invitationURL = fmt.Sprintf("%s/auth/registration?token=%s", config.AppConfig.FrontURL, invitation.ID)
 	}
 
 	if false {

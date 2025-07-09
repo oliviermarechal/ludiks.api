@@ -1,15 +1,18 @@
 package models
 
-import "time"
+import (
+	"ludiks/config"
+	"time"
+)
 
 type Organization struct {
-	ID          string    `json:"id" gorm:"primaryKey"`
-	Name        string    `json:"name"`
-	Plan        string    `json:"plan"`
-	EventsQuota int       `json:"eventsQuota"`
-	EventsUsed  int       `json:"eventsUsed"`
-	Pricing     int       `json:"pricing"`
-	CreatedAt   time.Time `json:"created_at"`
+	ID               string    `json:"id" gorm:"primaryKey"`
+	Name             string    `json:"name"`
+	Plan             string    `json:"plan"`
+	EventsUsed       int       `json:"eventsUsed"`
+	Pricing          int       `json:"pricing"`
+	CreatedAt        time.Time `json:"created_at"`
+	StripeCustomerID string    `json:"-"`
 }
 
 func (o *Organization) IncrementQuotaUsed() {
@@ -17,9 +20,9 @@ func (o *Organization) IncrementQuotaUsed() {
 }
 
 func (o *Organization) HasQuotasReached() bool {
-	if o.EventsQuota == -1 {
-		return false
+	if o.Plan == "free" && o.EventsUsed >= config.AppConfig.FreeEventsLimit {
+		return true
 	}
 
-	return o.EventsUsed >= o.EventsQuota
+	return false
 }

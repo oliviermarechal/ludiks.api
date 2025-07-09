@@ -31,6 +31,15 @@ func (r *OrganizationRepository) Create(organization *models.Organization) (*mod
 	return organization, nil
 }
 
+func (r *OrganizationRepository) FindByStripeCustomerID(stripeCustomerID string) (*models.Organization, error) {
+	var organization models.Organization
+	if err := r.db.Where("stripe_customer_id = ?", stripeCustomerID).First(&organization).Error; err != nil {
+		return nil, err
+	}
+
+	return &organization, nil
+}
+
 func (r *OrganizationRepository) UserIsMember(userID string, organizationID string) (bool, error) {
 	var count int64
 	err := r.db.Model(&models.OrganizationMembership{}).
@@ -71,4 +80,12 @@ func (r *OrganizationRepository) FindInvit(invitationID string) (*models.Organiz
 
 func (r *OrganizationRepository) RemoveInvit(invitationID string) error {
 	return r.db.Delete(&models.OrganizationInvitation{}, "id = ?", invitationID).Error
+}
+
+func (r *OrganizationRepository) UpdatePlan(organizationID, plan string) error {
+	return r.db.Model(&models.Organization{}).Where("id = ?", organizationID).Update("plan", plan).Error
+}
+
+func (r *OrganizationRepository) SetStripeCustomerID(organizationID string, stripeCustomerId string) error {
+	return r.db.Model(&models.Organization{}).Where("id = ?", organizationID).Update("stripe_customer_id", stripeCustomerId).Error
 }

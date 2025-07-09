@@ -2,9 +2,9 @@ package providers
 
 import (
 	"errors"
-	"os"
 	"time"
 
+	"ludiks/config"
 	"ludiks/src/account/domain/models"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -16,7 +16,7 @@ type JwtProvider struct {
 
 func NewJwtProvider() *JwtProvider {
 	return &JwtProvider{
-		secretKey: []byte(os.Getenv("JWT_SECRET_KEY")),
+		secretKey: []byte(config.AppConfig.JWTSecretKey),
 	}
 }
 

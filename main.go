@@ -15,6 +15,14 @@ import (
 func main() {
 	config.LoadConfig()
 
+	// Valider la configuration en production
+	if config.AppConfig.GoEnv == "production" {
+		if err := config.ValidateConfig(); err != nil {
+			log.Fatalf("❌ Erreur de configuration: %v", err)
+		}
+		log.Println("✅ Configuration validée avec succès")
+	}
+
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		config.AppConfig.DBHost,
 		config.AppConfig.DBUser,

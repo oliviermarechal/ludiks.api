@@ -2,10 +2,10 @@ package google_auth
 
 import (
 	"context"
+	"ludiks/config"
 	"ludiks/src/account/domain/models"
 	providers "ludiks/src/account/domain/providers"
 	domain_repositories "ludiks/src/account/domain/repositories"
-	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -37,7 +37,7 @@ func NewGoogleAuthUseCase(
 
 func (ga *GoogleAuthUseCase) Handle(command GoogleAuthCommand) (GoogleAuthResponse, error) {
 	ctx := context.Background()
-	payload, err := idtoken.Validate(ctx, command.IdToken, os.Getenv("GOOGLE_CLIENT_ID"))
+	payload, err := idtoken.Validate(ctx, command.IdToken, config.AppConfig.GoogleClientID)
 	if err != nil {
 		return GoogleAuthResponse{}, err
 	}
@@ -45,7 +45,7 @@ func (ga *GoogleAuthUseCase) Handle(command GoogleAuthCommand) (GoogleAuthRespon
 	gid := payload.Claims["sub"].(string)
 	email := payload.Claims["email"].(string)
 
-	user, err := ga.UserRepository.FindByGid(gid)
+	user, _ := ga.UserRepository.FindByGid(gid)
 
 	if user != nil {
 		token, err := ga.jwtProvider.GenerateToken(user)

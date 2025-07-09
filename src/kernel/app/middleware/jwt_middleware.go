@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"fmt"
+	"ludiks/config"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -25,7 +25,7 @@ func JwtMiddleware(c *gin.Context) {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
-		return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		return []byte(config.AppConfig.JWTSecretKey), nil
 	})
 
 	if err != nil {

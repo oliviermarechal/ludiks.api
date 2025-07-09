@@ -21,6 +21,8 @@ func RegisterEntities() []interface{} {
 		&OrganizationMembershipEntity{},
 		&OrganizationInvitationEntity{},
 		&MetadataValueEntity{},
+		&OrganizationSubscriptionEntity{},
+		&InvoiceEntity{},
 	}
 }
 

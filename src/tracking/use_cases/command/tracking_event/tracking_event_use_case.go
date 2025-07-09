@@ -4,6 +4,7 @@ import (
 	"errors"
 	"ludiks/src/kernel/app/database"
 	"ludiks/src/tracking/domain/models"
+	domain_providers "ludiks/src/tracking/domain/providers"
 	domain_repositories "ludiks/src/tracking/domain/repositories"
 
 	"sort"
@@ -18,6 +19,7 @@ type TrackingEventUseCase struct {
 	endUserRepository      domain_repositories.EndUserRepository
 	circuitRepository      domain_repositories.CircuitRepository
 	organizationRepository domain_repositories.OrganizationRepository
+	billingUsageProvider   domain_providers.BillingUsageProvider
 }
 
 func NewTrackingEventUseCase(
@@ -25,12 +27,14 @@ func NewTrackingEventUseCase(
 	endUserRepository domain_repositories.EndUserRepository,
 	circuitRepository domain_repositories.CircuitRepository,
 	organizationRepository domain_repositories.OrganizationRepository,
+	billingUsageProvider domain_providers.BillingUsageProvider,
 ) *TrackingEventUseCase {
 	return &TrackingEventUseCase{
 		progressionRepository:  progressionRepository,
 		endUserRepository:      endUserRepository,
 		circuitRepository:      circuitRepository,
 		organizationRepository: organizationRepository,
+		billingUsageProvider:   billingUsageProvider,
 	}
 }
 
@@ -86,6 +90,10 @@ func (u *TrackingEventUseCase) Execute(command *TrackingEventCommand) *TrackingE
 	}
 	organization.IncrementQuotaUsed()
 	u.organizationRepository.IncrementQuotaUsed(organization)
+
+	if organization.Plan != "free" {
+		u.billingUsageProvider.IncrementUsage(organization.StripeCustomerID)
+	}
 
 	circuitProgression, err := u.progressionRepository.FindUserProgressionByEventName(
 		command.ProjectID,

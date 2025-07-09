@@ -3,6 +3,7 @@ package tracking_handler
 import (
 	"errors"
 	"ludiks/src/kernel/app/handlers"
+	domain_providers "ludiks/src/tracking/domain/providers"
 	domain_repositories "ludiks/src/tracking/domain/repositories"
 	"ludiks/src/tracking/use_cases/command/tracking_event"
 
@@ -17,6 +18,7 @@ type ProgressionTrackingHandler struct {
 	endUserRepository      domain_repositories.EndUserRepository
 	circuitRepository      domain_repositories.CircuitRepository
 	organizationRepository domain_repositories.OrganizationRepository
+	billingUsageProvider   domain_providers.BillingUsageProvider
 }
 
 func NewProgressionTrackingHandler(
@@ -24,12 +26,14 @@ func NewProgressionTrackingHandler(
 	endUserRepository domain_repositories.EndUserRepository,
 	circuitRepository domain_repositories.CircuitRepository,
 	organizationRepository domain_repositories.OrganizationRepository,
+	billingUsageProvider domain_providers.BillingUsageProvider,
 ) *ProgressionTrackingHandler {
 	return &ProgressionTrackingHandler{
 		progressionRepository:  progressionRepository,
 		endUserRepository:      endUserRepository,
 		circuitRepository:      circuitRepository,
 		organizationRepository: organizationRepository,
+		billingUsageProvider:   billingUsageProvider,
 	}
 }
 
@@ -56,6 +60,7 @@ func (h *ProgressionTrackingHandler) Handle(c *gin.Context) {
 		h.endUserRepository,
 		h.circuitRepository,
 		h.organizationRepository,
+		h.billingUsageProvider,
 	)
 
 	response := useCase.Execute(&tracking_event.TrackingEventCommand{
