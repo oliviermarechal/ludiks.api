@@ -62,6 +62,7 @@ func SetupRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		projects.PUT("/:id", projects_handlers.NewUpdateProjectHandler(projectRepository).Handle)
 		projects.POST("/:id/api-keys", projects_handlers.NewCreateApiKeyHandler(projectRepository).Handle)
 		projects.DELETE("/:id/api-keys/:api-key-id", projects_handlers.NewDeleteApiKeyHandler(projectRepository).Handle)
+		projects.GET("/:id/end-users", projects_handlers.NewListProjectEndUserHandler(db).Handle)
 		projects.GET("/:id/metadata", projects_handlers.NewListProjectMetadataHandler(db).Handle)
 		projects.GET("/:id/api-keys", projects_handlers.NewListProjectApiKeysHandler(db).Handle)
 		projects.GET("/:id/overview", projects_handlers.NewProjectOverviewHandler(db).Handle)

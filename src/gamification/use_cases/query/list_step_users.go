@@ -32,7 +32,6 @@ func ListStepUsers(db *gorm.DB, StepId string, limit int, offset int, filters ma
 	var users []StepUser
 	var total int64
 
-	db = db.Debug()
 	baseQuery := db.Table("user_step_progressions usp").
 		Joins("LEFT JOIN user_circuit_progressions ucp ON usp.user_circuit_progression_id = ucp.id").
 		Joins("LEFT JOIN end_users eu ON ucp.end_user_id = eu.id").
